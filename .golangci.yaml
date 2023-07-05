@@ -1,0 +1,133 @@
+linters:
+  # Disable all linters.
+  # Default: false
+  #  disable-all: true
+  # Enable specific linter
+  # https://golangci-lint.run/usage/linters/#enabled-by-default
+  enable:
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - containedctx
+    - contextcheck
+    - cyclop
+    - deadcode
+    - decorder
+    - dogsled
+    - dupl
+    - durationcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - execinquery
+    - exhaustive
+    - exportloopref
+    - forbidigo
+    - forcetypeassert
+    - funlen
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godox
+    - gofmt
+    - goheader
+    - gomoddirectives
+    - gomodguard
+    - goprintffuncname
+    - gosec
+    - govet
+    - grouper
+    - ifshort
+    - importas
+    - ineffassign
+    - lll
+    - maintidx
+    - makezero
+    - misspell
+    - nakedret
+    - nestif
+    - nilerr
+    - nilnil
+    - nlreturn
+    - noctx
+    - nolintlint
+    - nonamedreturns
+    - nosprintfhostport
+    - paralleltest
+    - prealloc
+    - predeclared
+    - promlinter
+    - revive
+    - rowserrcheck
+    - sqlclosecheck
+    - structcheck
+    - stylecheck
+    - tagliatelle
+    - tenv
+    - testpackage
+    - thelper
+    - tparallel
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - wastedassign
+    - whitespace
+    - wsl
+  # Enable all available linters.
+  # Default: false
+  #  enable-all: true
+  # Disable specific linter
+  # https://golangci-lint.run/usage/linters/#disabled-by-default
+  disable:
+    - typecheck
+    - gosimple
+    - staticcheck
+    - gochecknoglobals
+    - wrapcheck
+    - varnamelen
+    - ireturn
+#    - nosnakecase
+    - errcheck
+    - gomnd
+    - exhaustruct
+    - exhaustivestruct
+    - goerr113
+    - gofumpt
+    - goimports
+    - godot
+    - gci
+    - interfacer
+  # https://golangci-lint.run/usage/linters
+  presets:
+    - bugs
+    - comment
+    - complexity
+    - error
+    - format
+    - import
+    - metalinter
+    - module
+    - performance
+    - sql
+    - style
+    - test
+    - unused
+  # Run only fast linters from enabled linters set (first run won't be fast)
+  # Default: false
+  fast: false
+
+run:
+  skip-dirs:
+    - client
+    - test
+
+  timeout: 45s
+
+issues:
+  exclude-rules:
+  - path: /
+    linters:
+      - typecheck

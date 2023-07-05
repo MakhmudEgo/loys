@@ -1,0 +1,15 @@
+---
+
+log:
+  level: debug
+  file:
+
+app:
+  listen: 8080
+  auth: "JWT_USER_SECRET_LOYS"
+
+database:
+  addr: database:5432
+  username: postgres
+  password: postgres
+  database: loys
