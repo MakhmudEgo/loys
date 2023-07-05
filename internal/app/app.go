@@ -13,9 +13,9 @@ import (
 	"go.uber.org/zap"
 
 	"dz1/internal/domain"
-	"dz1/internal/infrastructure"
 	"dz1/internal/infrastructure/api"
 	"dz1/internal/infrastructure/config"
+	"dz1/internal/infrastructure/repository"
 )
 
 type App struct {
@@ -40,7 +40,7 @@ func (a App) Run(ctx context.Context, logger *zap.Logger) error {
 	defer poolConn.Close()
 	logger.Info("database successfully connected")
 
-	userRepository := infrastructure.NewUserRepository(poolConn)
+	userRepository := repository.NewUser(poolConn)
 	userService := domain.NewUserService(userRepository)
 	tokenAuth := jwtauth.New("HS256", []byte(a.cfg.App.Auth), nil)
 
@@ -71,6 +71,7 @@ func (a App) Run(ctx context.Context, logger *zap.Logger) error {
 		Addr:    fmt.Sprintf(":%d", a.cfg.App.Listen),
 		Handler: router,
 	}
+
 	go func(shutdown func(ctx context.Context) error) {
 		<-ctx.Done()
 		logger.Info("context canceled")

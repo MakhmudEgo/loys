@@ -1,4 +1,4 @@
-package infrastructure
+package repository
 
 import (
 	"context"
@@ -18,7 +18,9 @@ type UserRepositoryImpl struct {
 	db *pgxpool.Pool
 }
 
-func NewUserRepository(db *pgxpool.Pool) domain.UserRepository {
+var _ domain.UserRepository = (*UserRepositoryImpl)(nil)
+
+func NewUser(db *pgxpool.Pool) domain.UserRepository {
 	return &UserRepositoryImpl{db: db}
 }
 

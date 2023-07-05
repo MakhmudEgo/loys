@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"dz1/internal/domain"
-	"dz1/internal/infrastructure"
+	"dz1/internal/infrastructure/repository"
 )
 
 func (b *Builder) register(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +49,7 @@ func (b *Builder) getUserByID(w http.ResponseWriter, r *http.Request) {
 	user, err := b.service.GetUser(b.ctx, userID)
 	if err != nil {
 		statusCode := http.StatusInternalServerError
-		if errors.Is(err, infrastructure.ErrUserNotFound) {
+		if errors.Is(err, repository.ErrUserNotFound) {
 			statusCode = http.StatusNotFound
 		}
 
