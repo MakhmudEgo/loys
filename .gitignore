@@ -24,3 +24,4 @@ go.work
 gen
 db/data
 build
+.idea
