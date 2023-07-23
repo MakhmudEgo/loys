@@ -33,11 +33,23 @@ func (a App) Run(ctx context.Context, logger *zap.Logger) error {
 		a.cfg.Database.Addr,
 		a.cfg.Database.Database,
 	)
-	poolConn, err := pgxpool.New(context.Background(), databaseUrl)
+
+	cfg, err := pgxpool.ParseConfig(databaseUrl)
+	if err != nil {
+		return err
+	}
+	cfg.MinConns = 5
+
+	poolConn, err := pgxpool.NewWithConfig(context.Background(), cfg)
 	if err != nil {
 		return fmt.Errorf("Unable to connect to database: %v\n", err)
 	}
 	defer poolConn.Close()
+
+	if err = poolConn.Ping(ctx); err != nil {
+		return err
+	}
+
 	logger.Info("database successfully connected")
 
 	userRepository := repository.NewUser(poolConn)

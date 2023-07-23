@@ -12,6 +12,11 @@ import (
 	"dz1/internal/infrastructure/repository"
 )
 
+const (
+	firstNameQuery = "first_name"
+	lastNameQuery  = "last_name"
+)
+
 func (b *Builder) register(w http.ResponseWriter, r *http.Request) {
 	var userReq domain.UserCreateReq
 
@@ -58,4 +63,29 @@ func (b *Builder) getUserByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSONResponse(w, http.StatusOK, user)
+}
+
+func (b *Builder) getSearchUsers(w http.ResponseWriter, r *http.Request) {
+	var errs []error
+
+	firstName, err := extractParamStrFromQuery(r.URL.Query(), firstNameQuery)
+	errs = checkErrAndAppend(errs, err)
+	lastName, err := extractParamStrFromQuery(r.URL.Query(), lastNameQuery)
+	errs = checkErrAndAppend(errs, err)
+	if len(errs) != 0 {
+		writeErrorResponse(w, http.StatusBadRequest, errors.Join(errs...))
+		return
+	}
+
+	users, err := b.service.SearchUsersByNames(b.ctx, firstName, lastName)
+	if err != nil {
+		statusCode := http.StatusInternalServerError
+		if errors.Is(err, repository.ErrUsersNotFound) {
+			statusCode = http.StatusNotFound
+		}
+		writeErrorResponse(w, statusCode, err)
+		return
+	}
+
+	writeJSONResponse(w, http.StatusOK, users)
 }

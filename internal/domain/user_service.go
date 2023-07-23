@@ -13,6 +13,7 @@ type UserService interface {
 	DeleteUser(userID string) error
 	AuthenticateUser(ctx context.Context, userID, password string) (*User, error)
 	AuthorizeUser(userID string, permission string) bool
+	SearchUsersByNames(ctx context.Context, firstName string, lastName string) ([]User, error)
 	// ...
 }
 
@@ -46,6 +47,10 @@ func (u userService) CreateUser(ctx context.Context, user *User) (*UserCreateRes
 	return &UserCreateResp{
 		ID: userID,
 	}, nil
+}
+
+func (u userService) SearchUsersByNames(ctx context.Context, firstName string, lastName string) ([]User, error) {
+	return u.userRepository.FindByNames(ctx, firstName, lastName)
 }
 
 func (u userService) UpdateUser(userID string, updatedUser User) error {

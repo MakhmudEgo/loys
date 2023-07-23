@@ -53,12 +53,14 @@ func (b *Builder) RegisterRoutes(router chi.Router) {
 	router.Post("/login", b.login)
 	router.Route("/user", func(r chi.Router) {
 		r.Post("/register", b.register)
+
 		// protected
 		r.Group(func(r chi.Router) {
 			r.Use(jwtauth.Verifier(b.tokenAuth))
 			r.Use(jwtauth.Authenticator)
 
 			r.Get("/get/{id}", b.getUserByID)
+			r.Get("/search", b.getSearchUsers)
 		})
 
 	})
