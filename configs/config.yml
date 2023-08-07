@@ -9,7 +9,14 @@ app:
   auth: "JWT_USER_SECRET_LOYS"
 
 database:
-  addr: database:5432
-  username: postgres
-  password: postgres
-  database: loys
+  master:
+    addr: nginx:81
+    username: postgres
+    password: postgres
+    database: loys
+
+  slave:
+    addr: nginx:80
+    username: repl_user
+    password: repl_user
+    database: loys

@@ -1,9 +1,31 @@
 version: '3.8'
 
 services:
-  database:
+  nginx:
+    container_name: "loys_nginx"
+    image: nginx
+    volumes:
+        - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    command: [ nginx-debug, '-g', 'daemon off;' ]
+    ports:
+      - "8778:80"
+      - "8777:81"
+    networks:
+      - app_network
+      - db_network
+    depends_on:
+      pgmaster:
+        condition: service_healthy
+      pgslave:
+        condition: service_healthy
+      pgslave1:
+        condition: service_healthy
+
+  pgmaster:
+    container_name: "loys_pgmaster"
     image: postgres:15.3-alpine3.18
     restart: always
+#    TODO:: for debug
     ports:
       - '5432:5432'
     environment:
@@ -11,19 +33,81 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=loys
     volumes:
-      - ./db/data:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      - ./db/loys_pgmaster:/var/lib/postgresql/data
+#      - ./db/init.sql:/docker-entrypoint-initdb.d/create_tables.sql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - db_network
+  pgslave:
+    container_name: "loys_pgslave"
+    image: postgres:15.3-alpine3.18
+    restart: always
+#    TODO:: for debug
+    ports:
+      - '5433:5432'
+    volumes:
+      - ./db/loys_pgslave:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - db_network
+  pgslave1:
+    container_name: "loys_pgslave1"
+    image: postgres:15.3-alpine3.18
+    restart: always
+#    TODO:: for debug
+    ports:
+      - '5434:5432'
+    volumes:
+      - ./db/loys_pgslave1:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - db_network
 
   app:
-    build: ./
-    restart: always
+    container_name: "loys"
+    build:
+      dockerfile: ./deploy/app/Dockerfile
+      context: ./
+
+#    restart: always
     depends_on:
-      database:
-        condition: service_healthy
+      - nginx
     ports:
       - '8080:8080'
+    networks:
+      - app_network
+
+
+#  pgbouncer:
+#    container_name: "loys_pgbouncer"
+#    image: edoburu/pgbouncer
+#    restart: always
+#    ports:
+#      - '6432:5432'
+#    environment:
+#      - DB_USER=postgres
+#      - DB_PASSWORD=postgres
+#      - DB_HOST=database
+#      - DB_NAME=loys
+#    networks:
+#      - db_network
+#      - app_network
+#    volumes:
+#      - ./db/pgbouncer:/etc/pgbouncer
+
+
+networks:
+  app_network:
+  db_network:

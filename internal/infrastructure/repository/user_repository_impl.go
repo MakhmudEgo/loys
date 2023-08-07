@@ -16,17 +16,21 @@ var (
 )
 
 type UserRepositoryImpl struct {
-	db *pgxpool.Pool
+	masterDB *pgxpool.Pool
+	slaveDB  *pgxpool.Pool
 }
 
 var _ domain.UserRepository = (*UserRepositoryImpl)(nil)
 
-func NewUser(db *pgxpool.Pool) *UserRepositoryImpl {
-	return &UserRepositoryImpl{db: db}
+func NewUser(master *pgxpool.Pool, slave *pgxpool.Pool) *UserRepositoryImpl {
+	return &UserRepositoryImpl{
+		masterDB: master,
+		slaveDB:  slave,
+	}
 }
 
 func (r *UserRepositoryImpl) GetByID(ctx context.Context, ID string) (*domain.User, error) {
-	conn, err := r.db.Acquire(ctx)
+	conn, err := r.slaveDB.Acquire(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +69,7 @@ func (r *UserRepositoryImpl) GetByID(ctx context.Context, ID string) (*domain.Us
 }
 
 func (r *UserRepositoryImpl) Create(ctx context.Context, user *domain.User) (string, error) {
-	conn, err := r.db.Acquire(ctx)
+	conn, err := r.masterDB.Acquire(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -94,7 +98,7 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, user *domain.User) (str
 }
 
 func (r *UserRepositoryImpl) FindByNames(ctx context.Context, firstName string, lastName string) ([]domain.User, error) {
-	conn, err := r.db.Acquire(ctx)
+	conn, err := r.slaveDB.Acquire(ctx)
 	if err != nil {
 		return nil, err
 	}

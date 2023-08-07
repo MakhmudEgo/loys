@@ -29,10 +29,14 @@ type Log struct {
 	File  string
 }
 
-type Database struct {
+type Postgres struct {
 	Addr     string
 	Username string
 	Password string
 	Database string
-	// ...
+}
+
+type Database struct {
+	Master Postgres
+	Slave  Postgres
 }

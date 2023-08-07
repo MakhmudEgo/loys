@@ -27,32 +27,54 @@ func New(cfg *config.Config) *App {
 }
 
 func (a App) Run(ctx context.Context, logger *zap.Logger) error {
-	databaseUrl := fmt.Sprintf("postgres://%s:%s@%s/%s",
-		a.cfg.Database.Username,
-		a.cfg.Database.Password,
-		a.cfg.Database.Addr,
-		a.cfg.Database.Database,
+	pgMasterURL := fmt.Sprintf("postgres://%s:%s@%s/%s",
+		a.cfg.Database.Master.Username,
+		a.cfg.Database.Master.Password,
+		a.cfg.Database.Master.Addr,
+		a.cfg.Database.Master.Database,
+	)
+	pgSlaveURL := fmt.Sprintf("postgres://%s:%s@%s/%s",
+		a.cfg.Database.Slave.Username,
+		a.cfg.Database.Slave.Password,
+		a.cfg.Database.Slave.Addr,
+		a.cfg.Database.Slave.Database,
 	)
 
-	cfg, err := pgxpool.ParseConfig(databaseUrl)
+	pgMasterCfg, err := pgxpool.ParseConfig(pgMasterURL)
 	if err != nil {
 		return err
 	}
-	cfg.MinConns = 5
+	pgMasterCfg.MinConns = 5
 
-	poolConn, err := pgxpool.NewWithConfig(context.Background(), cfg)
+	pgSlaveCfg, err := pgxpool.ParseConfig(pgSlaveURL)
+	if err != nil {
+		return err
+	}
+	pgSlaveCfg.MinConns = 5
+
+	pgMasterConn, err := pgxpool.NewWithConfig(context.Background(), pgMasterCfg)
 	if err != nil {
 		return fmt.Errorf("Unable to connect to database: %v\n", err)
 	}
-	defer poolConn.Close()
+	defer pgMasterConn.Close()
 
-	if err = poolConn.Ping(ctx); err != nil {
+	if err = pgMasterConn.Ping(ctx); err != nil {
+		return err
+	}
+
+	pgSlaveConn, err := pgxpool.NewWithConfig(context.Background(), pgSlaveCfg)
+	if err != nil {
+		return fmt.Errorf("Unable to connect to database: %v\n", err)
+	}
+	defer pgSlaveConn.Close()
+
+	if err = pgSlaveConn.Ping(ctx); err != nil {
 		return err
 	}
 
 	logger.Info("database successfully connected")
 
-	userRepository := repository.NewUser(poolConn)
+	userRepository := repository.NewUser(pgMasterConn, pgSlaveConn)
 	userService := domain.NewUserService(userRepository)
 	tokenAuth := jwtauth.New("HS256", []byte(a.cfg.App.Auth), nil)
 

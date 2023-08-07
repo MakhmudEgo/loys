@@ -12,7 +12,9 @@ COPY go.mod go.sum ./
 
 RUN go mod download && go mod verify
 
-COPY . .
+COPY ./cmd ./cmd
+COPY ./configs ./configs
+COPY ./internal ./internal
 
 RUN go build -o ./bin/loys ./cmd/loys/main.go
 
